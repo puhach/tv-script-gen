@@ -5,6 +5,17 @@ import torch
 
 SPECIAL_WORDS = {'PADDING': '<PAD>'}
 
+
+def load_data(path):
+    """
+    Load Dataset from the file specified.
+    """
+    input_file = os.path.join(path)
+    with open(input_file, "r") as f:
+        data = f.read()
+
+    return data
+
 def preprocess_and_save_data(dataset_path, token_lookup, create_lookup_tables):
     """
     Preprocess Text Data
