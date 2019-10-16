@@ -36,8 +36,8 @@ class RNN(nn.Module):
         :param hidden: The hidden state        
         :return: Two Tensors, the output of the neural network and the latest hidden state
         """
-        # TODO: Implement function   
-        #print("input:", nn_input.shape) 
+        
+        #print("input:", nn_input.type()) 
         x = self.emb(nn_input) # (batch_size, seq_len) -> (batch_size, seq_len, emb_dim)
         #print("emb:", x.shape)
         

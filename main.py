@@ -47,8 +47,8 @@ def batch_data(words, sequence_length, batch_size):
     :return: DataLoader with batched data
     """
     n_sequences = len(words)//sequence_length
-    features = np.zeros(shape=(n_sequences, sequence_length), dtype=np.int)
-    targets = np.zeros(shape=(n_sequences), dtype=np.int)
+    features = np.zeros(shape=(n_sequences, sequence_length), dtype=np.int64)
+    targets = np.zeros(shape=(n_sequences), dtype=np.int64)
     
     for i in range(0, n_sequences):
         start = i*sequence_length        
@@ -59,6 +59,10 @@ def batch_data(words, sequence_length, batch_size):
             targets[i] = words[start+sequence_length]
         
    
+    #print(features.dtype)
+    #test = torch.from_numpy(features)
+    #print(test.type())
+
     # return a dataloader
     #data_tensor = TensorDataset(features, targets)
     data_tensor = TensorDataset(torch.from_numpy(features), torch.from_numpy(targets))
