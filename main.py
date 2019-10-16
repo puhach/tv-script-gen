@@ -44,4 +44,5 @@ try:
 except:
     data_dir = './data/Seinfeld_Scripts.txt'
     text = checkpoint.load_data(data_dir)
+    int_text, vocab_to_int, int_to_vocab, token_dict = checkpoint.preprocess_and_save_data(data_dir, token_lookup, create_lookup_tables)
 

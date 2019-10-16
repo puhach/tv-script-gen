@@ -1,2 +1,4 @@
 .vscode/settings.json
 __pycache__/checkpoint.cpython-35.pyc
+data/Seinfeld_Scripts.txt
+preprocess.p
