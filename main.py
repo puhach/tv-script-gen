@@ -82,3 +82,8 @@ except:
     text = checkpoint.load_data(data_dir)
     int_text, vocab_to_int, int_to_vocab, token_dict = checkpoint.preprocess_and_save_data(data_dir, token_lookup, create_lookup_tables)
 
+    train_on_gpu = torch.cuda.is_available()
+    if not train_on_gpu:
+        print('No GPU found. Please use a GPU to train your neural network.')
+
+    
