@@ -102,16 +102,68 @@ def forward_back_prop(rnn, optimizer, criterion, inp, target, hidden, train_on_g
     # return the loss over a batch and the hidden state produced by our model
     return loss.item(), hidden
 
+
+def train_rnn(rnn, batch_size, optimizer, criterion, n_epochs, show_every_n_batches=100):
+    batch_losses = []
+    
+    rnn.train()
+
+    print("Training for %d epoch(s)..." % n_epochs)
+    for epoch_i in range(1, n_epochs + 1):
+        
+        # initialize hidden state
+        hidden = rnn.init_hidden(batch_size)
+        
+        for batch_i, (inputs, labels) in enumerate(train_loader, 1):
+            
+            # make sure you iterate over completely full batches, only
+            n_batches = len(train_loader.dataset)//batch_size
+            if(batch_i > n_batches):
+                break
+            
+            # forward, back prop
+            loss, hidden = forward_back_prop(rnn, optimizer, criterion, inputs, labels, hidden)          
+            # record loss
+            batch_losses.append(loss)
+
+            # printing loss stats
+            if batch_i % show_every_n_batches == 0:
+                print('Epoch: {:>4}/{:<4}  Loss: {}\n'.format(
+                    epoch_i, n_epochs, np.average(batch_losses)))
+                batch_losses = []
+
+    # returns a trained rnn
+    return rnn
+
+
+
 try:
     _, vocab_to_int, int_to_vocab, token_dict = checkpoint.load_preprocess()
     trained_rnn = checkpoint.load_model('./save/trained_rnn')
+
 except:
     data_dir = './data/Seinfeld_Scripts.txt'
     text = checkpoint.load_data(data_dir)
+
     int_text, vocab_to_int, int_to_vocab, token_dict = checkpoint.preprocess_and_save_data(data_dir, token_lookup, create_lookup_tables)
+
+    sequence_length = 16  # number of words in a sequence
+    batch_size = 32
+
+    train_loader = batch_data(int_text, sequence_length, batch_size)
 
     train_on_gpu = torch.cuda.is_available()
     if not train_on_gpu:
         print('No GPU found. Please use a GPU to train your neural network.')
 
     
+    num_epochs = 20
+    learning_rate = 0.0001
+    vocab_size = len(vocab_to_int)
+    output_size = vocab_size
+    embedding_dim = 256
+    hidden_dim = 512
+    n_layers = 2
+
+    # Show stats for every n number of batches
+    show_every_n_batches = 200
