@@ -74,6 +74,34 @@ def batch_data(words, sequence_length, batch_size):
     
     return data_loader
 
+
+def forward_back_prop(rnn, optimizer, criterion, inp, target, hidden, train_on_gpu):
+    """
+    Forward and backward propagation on the neural network
+    :param decoder: The PyTorch Module that holds the neural network
+    :param decoder_optimizer: The PyTorch optimizer for the neural network
+    :param criterion: The PyTorch loss function
+    :param inp: A batch of input to the neural network
+    :param target: The target output for the batch of input
+    :return: The loss and the latest hidden state Tensor
+    """
+        
+    # move data to GPU, if available
+    if train_on_gpu:
+        inp = inp.cuda()
+        target = target.cuda()
+    
+    # perform backpropagation and optimization
+    #print("inp:", inp)
+    out, hidden = rnn(inp, hidden)
+    optimizer.zero_grad()
+    loss = criterion(out, target)
+    loss.backward()
+    optimizer.step()
+
+    # return the loss over a batch and the hidden state produced by our model
+    return loss.item(), hidden
+
 try:
     _, vocab_to_int, int_to_vocab, token_dict = checkpoint.load_preprocess()
     trained_rnn = checkpoint.load_model('./save/trained_rnn')
