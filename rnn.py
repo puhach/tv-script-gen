@@ -18,6 +18,7 @@ class RNN(nn.Module):
         self.output_size = output_size
         self.hidden_size = hidden_dim
         self.n_layers = n_layers
+        #self.train_on_gpu = train_on_gpu
         
         # define model layers
         self.emb = nn.Embedding(num_embeddings=vocab_size, embedding_dim=embedding_dim)
@@ -69,7 +70,7 @@ class RNN(nn.Module):
         return x, h
     
     
-    def init_hidden(self, batch_size):
+    def init_hidden(self, batch_size, train_on_gpu):
         '''
         Initialize the hidden state of an LSTM/GRU
         :param batch_size: The batch_size of the hidden state

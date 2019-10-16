@@ -1,6 +1,9 @@
 import os
+import numpy as np
 import torch
+import torch.nn as nn
 import checkpoint
+from rnn import RNN
 from collections import Counter
 from torch.utils.data import TensorDataset, DataLoader
 
@@ -103,7 +106,7 @@ def forward_back_prop(rnn, optimizer, criterion, inp, target, hidden, train_on_g
     return loss.item(), hidden
 
 
-def train_rnn(rnn, batch_size, optimizer, criterion, n_epochs, show_every_n_batches=100):
+def train_rnn(rnn, batch_size, optimizer, criterion, n_epochs, train_on_gpu, show_every_n_batches=100):
     batch_losses = []
     
     rnn.train()
@@ -112,7 +115,7 @@ def train_rnn(rnn, batch_size, optimizer, criterion, n_epochs, show_every_n_batc
     for epoch_i in range(1, n_epochs + 1):
         
         # initialize hidden state
-        hidden = rnn.init_hidden(batch_size)
+        hidden = rnn.init_hidden(batch_size, train_on_gpu)
         
         for batch_i, (inputs, labels) in enumerate(train_loader, 1):
             
@@ -122,7 +125,7 @@ def train_rnn(rnn, batch_size, optimizer, criterion, n_epochs, show_every_n_batc
                 break
             
             # forward, back prop
-            loss, hidden = forward_back_prop(rnn, optimizer, criterion, inputs, labels, hidden)          
+            loss, hidden = forward_back_prop(rnn, optimizer, criterion, inputs, labels, hidden, train_on_gpu)          
             # record loss
             batch_losses.append(loss)
 
@@ -155,7 +158,6 @@ except:
     train_on_gpu = torch.cuda.is_available()
     if not train_on_gpu:
         print('No GPU found. Please use a GPU to train your neural network.')
-
     
     num_epochs = 20
     learning_rate = 0.0001
@@ -167,3 +169,17 @@ except:
 
     # Show stats for every n number of batches
     show_every_n_batches = 200
+
+    rnn = RNN(vocab_size, output_size, embedding_dim, hidden_dim, n_layers, dropout=0.5)
+    if train_on_gpu:
+        rnn.cuda()
+
+    # defining loss and optimization functions for training
+    optimizer = torch.optim.Adam(rnn.parameters(), lr=learning_rate)
+    criterion = nn.CrossEntropyLoss()
+
+    # training the model
+    trained_rnn = train_rnn(rnn, batch_size, optimizer, criterion, num_epochs, train_on_gpu, show_every_n_batches)
+
+    # saving the trained model
+    checkpoint.save_model('./save/trained_rnn', trained_rnn)
