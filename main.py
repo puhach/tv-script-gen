@@ -59,25 +59,8 @@ def batch_data(words, sequence_length, batch_size):
             targets[i] = words[start+sequence_length]
         
    
-    #print(features.dtype)
-    #test = torch.from_numpy(features)
-    #print(test.type())
-
-    # return a dataloader
-    #data_tensor = TensorDataset(features, targets)
     data_tensor = TensorDataset(torch.from_numpy(features), torch.from_numpy(targets))
     data_loader = DataLoader(data_tensor, batch_size=batch_size, shuffle=True)
-    
-    #x,y = next(iter(data_loader))
-    #print(type(x))
-    #for i in range(x.shape[0]):
-    #    found = False
-    #    for j in range(features.shape[0]):
-    #        eq = x[i].numpy() == features[j]            
-    #        if eq.sum() == x.shape[1] and y[i].item() == targets[j]:
-    #            found = True
-    #            break
-    #    print("found:", found)
     
     return data_loader
 
@@ -99,7 +82,6 @@ def forward_back_prop(rnn, optimizer, criterion, inp, target, hidden, train_on_g
         target = target.cuda()
     
     # perform backpropagation and optimization
-    #print("inp:", inp)
     out, hidden = rnn(inp, hidden)
     optimizer.zero_grad()
     loss = criterion(out, target)

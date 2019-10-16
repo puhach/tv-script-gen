@@ -36,17 +36,10 @@ class RNN(nn.Module):
         :param hidden: The hidden state        
         :return: Two Tensors, the output of the neural network and the latest hidden state
         """
-        
-        #print("input:", nn_input.type()) 
+
         x = self.emb(nn_input) # (batch_size, seq_len) -> (batch_size, seq_len, emb_dim)
-        #print("emb:", x.shape)
-        
-        ## ! Please, update the tests. GRU's state is not a tuple !
-        #if isinstance(hidden, tuple):
-        #    hidden = hidden[0]
             
         x, h = self.gru(x, hidden) # (batch_size, seq_len, emb_dim) -> (batch_size, seq_len, hidden_size)
-        #print("gru:", x.shape)
         
         # detach the hidden state from the computation graph to prevent it from propagating back 
         # throughout the whole time sequence
@@ -64,9 +57,6 @@ class RNN(nn.Module):
         x = self.fc(x)
         
         # return one batch of output word scores and the hidden state
-        ## ! Again, no tuple is needed for the hidden state, but the test function
-        ## will not accept it otherwise... !
-        #return x, (h,)
         return x, h
     
     
@@ -88,9 +78,4 @@ class RNN(nn.Module):
         else:
             hidden = weight.new(self.n_layers, batch_size, self.hidden_size).zero_()
         
-        #print("hidden:", hidden.shape)
-        
-        ## ! in contrast with LSTM, GRU's hidden state is not a tuple, but the test function
-        ## seems to expect a tuple, so I have to pack it this way !
-        #return (hidden,)
         return hidden
