@@ -1,8 +1,9 @@
 import os
 import torch
 import checkpoint
-#import problem_unittests as tests
 from collections import Counter
+from torch.utils.data import TensorDataset, DataLoader
+
 
 def create_lookup_tables(text):
     """
@@ -12,15 +13,10 @@ def create_lookup_tables(text):
     """
     
     word_counter = Counter(text)
-    #print(word_counter)
     vocab = sorted(word_counter, key=word_counter.get, reverse=True)
-    #print(vocab)
     
     vocab_to_int = { word: i for i, word in enumerate(vocab) }
     int_to_vocab = { i:word for word,i in vocab_to_int.items() }
-    
-    #print(vocab_to_int)
-    #print(int_to_vocab)
     
     # return tuple
     return (vocab_to_int, int_to_vocab)
@@ -37,6 +33,46 @@ def token_lookup():
     
         
     return punctuation_map
+
+
+def batch_data(words, sequence_length, batch_size):
+    """
+    Batch the neural network data using DataLoader
+    :param words: The word ids of the TV scripts
+    :param sequence_length: The sequence length of each batch
+    :param batch_size: The size of each batch; the number of sequences in a batch
+    :return: DataLoader with batched data
+    """
+    n_sequences = len(words)//sequence_length
+    features = np.zeros(shape=(n_sequences, sequence_length), dtype=np.int)
+    targets = np.zeros(shape=(n_sequences), dtype=np.int)
+    
+    for i in range(0, n_sequences):
+        start = i*sequence_length        
+        features[i, :] = words[start: start+sequence_length]
+        if start+sequence_length >= len(words):
+            targets[i] = words[0]
+        else:
+            targets[i] = words[start+sequence_length]
+        
+   
+    # return a dataloader
+    #data_tensor = TensorDataset(features, targets)
+    data_tensor = TensorDataset(torch.from_numpy(features), torch.from_numpy(targets))
+    data_loader = DataLoader(data_tensor, batch_size=batch_size, shuffle=True)
+    
+    #x,y = next(iter(data_loader))
+    #print(type(x))
+    #for i in range(x.shape[0]):
+    #    found = False
+    #    for j in range(features.shape[0]):
+    #        eq = x[i].numpy() == features[j]            
+    #        if eq.sum() == x.shape[1] and y[i].item() == targets[j]:
+    #            found = True
+    #            break
+    #    print("found:", found)
+    
+    return data_loader
 
 try:
     _, vocab_to_int, int_to_vocab, token_dict = checkpoint.load_preprocess()
