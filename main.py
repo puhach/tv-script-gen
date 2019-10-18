@@ -245,3 +245,11 @@ except:
 
 print("Generating a script...")
 
+gen_length = 333 # modify the length to your preference
+prime_word = 'elaine' # name for starting the script
+
+pad_word = checkpoint.SPECIAL_WORDS['PADDING']
+
+generated_script = generate(trained_rnn, vocab_to_int[prime_word + ':'], int_to_vocab, token_dict, vocab_to_int[pad_word], gen_length)
+
+print(generated_script)

@@ -3,3 +3,4 @@ __pycache__/checkpoint.cpython-35.pyc
 data/Seinfeld_Scripts.txt
 preprocess.p
 __pycache__/rnn.cpython-35.pyc
+trained_rnn.pt
