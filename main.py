@@ -193,10 +193,13 @@ def generate(rnn, prime_id, int_to_vocab, token_dict, pad_value, predict_len=100
 
 
 try:
+    print("Loading the model...")
     _, vocab_to_int, int_to_vocab, token_dict = checkpoint.load_preprocess()
     trained_rnn = checkpoint.load_model('./save/trained_rnn')
 
 except:
+    print("Unable to load a checkpoint. Input data needs to be preprocessed.")
+
     data_dir = './data/Seinfeld_Scripts.txt'
     text = checkpoint.load_data(data_dir)
 
@@ -206,6 +209,8 @@ except:
     batch_size = 32
 
     train_loader = batch_data(int_text, sequence_length, batch_size)
+
+    print("Training...")
 
     train_on_gpu = torch.cuda.is_available()
     if not train_on_gpu:
@@ -236,3 +241,7 @@ except:
 
     # saving the trained model
     checkpoint.save_model('./save/trained_rnn', trained_rnn)
+
+
+print("Generating a script...")
+
