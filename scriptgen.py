@@ -1,4 +1,5 @@
 import os
+import argparse
 import numpy as np
 import torch
 import torch.nn as nn
@@ -211,13 +212,39 @@ def generate(rnn, prime_id, int_to_vocab, token_dict, pad_value, sequence_length
 
 
 
+parser = argparse.ArgumentParser(description='TV Script Generator')
+parser.add_argument('--prime-word', type=str, required=True,
+                    help='the first word of a new script')
+parser.add_argument('--script-len', type=int, required=True,
+                    help='the length of a script to generate')
+parser.add_argument('--n-epochs', type=int, default=2,
+                    help='the number of epochs to train the model for')
+parser.add_argument('--learning-rate', type=float, default=0.0001,
+                    help='the learning rate for gradient descent')
+parser.add_argument('--sequence-len', type=int, default=16,
+                    help='the number of words in a sequence')
+parser.add_argument('--batch-size', type=int, default=32,
+                    help='the number of word sequences in a batch')
+parser.add_argument('--n-layers', type=int, default=2, 
+                    help='the number of layers in the recurrent neural network')
+parser.add_argument('--embedding-dim', type=int, default=256,
+                    help='the embedding dimension')
+parser.add_argument('--hidden-dim', type=int, default=512,
+                    help='the hidden dimension of the recurrent neural network')
+parser.add_argument('--stat-freq', type=int, default=200, 
+                    help='prints loss statistics after the specified number of batches have been processed')
+
+
+args = parser.parse_args()
+print(args)
+
 use_gpu = torch.cuda.is_available()
 if not use_gpu:
     print('No GPU found. Please use a GPU to train your neural network.')
 
 # Number of words in a sequence.
 # This parameter is used both for training and generating.
-sequence_length = 16  
+sequence_length = args.sequence_len 
 
 try:
     print("Loading the model...")
@@ -234,23 +261,21 @@ except:
         token_lookup, create_lookup_tables)
 
     
-    batch_size = 32
+    batch_size = args.batch_size # 32
 
     train_loader = batch_data(int_text, sequence_length, batch_size)
 
     print("Training...")
     
     #num_epochs = 20
-    num_epochs = 2
-    learning_rate = 0.0001
+    num_epochs = args.n_epochs
+    learning_rate = args.learning_rate #0.0001
     vocab_size = len(vocab_to_int)
     output_size = vocab_size
-    embedding_dim = 256
-    hidden_dim = 512
-    n_layers = 2
-
-    # Show stats for every n number of batches
-    show_every_n_batches = 200
+    embedding_dim = args.embedding_dim #256
+    hidden_dim = args.hidden_dim #512
+    n_layers = args.n_layers #2   
+    show_every_n_batches = args.stat_freq # Show stats for every n number of batches
 
     rnn = RNN(vocab_size, output_size, embedding_dim, hidden_dim, n_layers, dropout=0.5)
     if use_gpu:
@@ -276,8 +301,8 @@ except:
 
 print("Generating a script...")
 
-gen_length = 333 # modify the length to your preference
-prime_word = 'elaine' # name for starting the script
+gen_length = args.script_len # modify the length to your preference
+prime_word = args.prime_word.lower() # elaine
 
 pad_word = preprocessor.SPECIAL_WORDS['PADDING']
 
