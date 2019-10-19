@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import numpy as np
 import torch
@@ -214,7 +215,7 @@ def generate(rnn, prime_id, int_to_vocab, token_dict, pad_value, sequence_length
 
 parser = argparse.ArgumentParser(description='TV Script Generator')
 parser.add_argument('--prime-word', type=str, required=True,
-                    help='the first word of a new script')
+                    help='the first word of a new script (the name of a character)')
 parser.add_argument('--script-len', type=int, required=True,
                     help='the length of a script to generate')
 parser.add_argument('--n-epochs', type=int, default=2,
@@ -303,6 +304,10 @@ print("Generating a script...")
 
 gen_length = args.script_len # modify the length to your preference
 prime_word = args.prime_word.lower() # elaine
+
+if not prime_word+':' in vocab_to_int.keys():
+    print('Failed to generate a script (wrong prime word).')
+    sys.exit()
 
 pad_word = preprocessor.SPECIAL_WORDS['PADDING']
 
