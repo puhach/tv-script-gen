@@ -173,7 +173,7 @@ def generate(rnn, prime_id, int_to_vocab, token_dict, pad_value, sequence_length
         output, _ = rnn(current_seq, hidden)
         
         # get the next word probabilities
-        p = F.softmax(output, dim=1).data
+        p = nn.functional.softmax(output, dim=1).data
         if use_gpu:
             p = p.cpu() # move to cpu
          
@@ -200,6 +200,7 @@ def generate(rnn, prime_id, int_to_vocab, token_dict, pad_value, sequence_length
     for key, token in token_dict.items():
         ending = ' ' if key in ['\n', '(', '"'] else ''
         gen_sentences = gen_sentences.replace(' ' + token.lower(), key)
+
     gen_sentences = gen_sentences.replace('\n ', '\n')
     gen_sentences = gen_sentences.replace('( ', '(')
     
