@@ -2,7 +2,7 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-import checkpoint
+import preprocessor
 from rnn import RNN
 from collections import Counter
 from torch.utils.data import TensorDataset, DataLoader
@@ -221,16 +221,16 @@ sequence_length = 16
 
 try:
     print("Loading the model...")
-    _, vocab_to_int, int_to_vocab, token_dict = checkpoint.load_preprocess()
-    trained_rnn = checkpoint.load_model('./save/trained_rnn')
+    _, vocab_to_int, int_to_vocab, token_dict = preprocessor.load_preprocess()
+    trained_rnn = preprocessor.load_model('./save/trained_rnn')
 
 except:
     print("Unable to load a checkpoint. Input data needs to be preprocessed.")
 
     data_dir = './data/Seinfeld_Scripts.txt'
-    text = checkpoint.load_data(data_dir)
+    text = preprocessor.load_data(data_dir)
 
-    int_text, vocab_to_int, int_to_vocab, token_dict = checkpoint.preprocess_and_save_data(data_dir, 
+    int_text, vocab_to_int, int_to_vocab, token_dict = preprocessor.preprocess_and_save_data(data_dir, 
         token_lookup, create_lookup_tables)
 
     
@@ -271,7 +271,7 @@ except:
         show_every_n_batches)
 
     # saving the trained model
-    checkpoint.save_model('./save/trained_rnn', trained_rnn)
+    preprocessor.save_model('./save/trained_rnn', trained_rnn)
 
 
 print("Generating a script...")
@@ -279,7 +279,7 @@ print("Generating a script...")
 gen_length = 333 # modify the length to your preference
 prime_word = 'elaine' # name for starting the script
 
-pad_word = checkpoint.SPECIAL_WORDS['PADDING']
+pad_word = preprocessor.SPECIAL_WORDS['PADDING']
 
 generated_script = generate(trained_rnn, 
     vocab_to_int[prime_word + ':'], 
