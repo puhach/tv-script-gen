@@ -65,19 +65,21 @@ def batch_data(words, sequence_length, batch_size):
     return data_loader
 
 
-def forward_back_prop(rnn, optimizer, criterion, inp, target, hidden, train_on_gpu):
+def forward_back_prop(rnn, optimizer, criterion, inp, target, hidden, use_gpu):
     """
     Forward and backward propagation on the neural network
-    :param decoder: The PyTorch Module that holds the neural network
-    :param decoder_optimizer: The PyTorch optimizer for the neural network
+    :param rnn: The PyTorch Module that holds the neural network
+    :param optimizer: The PyTorch optimizer for the neural network
     :param criterion: The PyTorch loss function
     :param inp: A batch of input to the neural network
     :param target: The target output for the batch of input
+    :param hidden: The initial hidden state
+    :param use_gpu: Determines whether to use GPU for accelerated training
     :return: The loss and the latest hidden state Tensor
     """
         
     # move data to GPU, if available
-    if train_on_gpu:
+    if use_gpu:
         inp = inp.cuda()
         target = target.cuda()
     
@@ -92,7 +94,20 @@ def forward_back_prop(rnn, optimizer, criterion, inp, target, hidden, train_on_g
     return loss.item(), hidden
 
 
-def train_rnn(rnn, batch_size, optimizer, criterion, n_epochs, train_on_gpu, show_every_n_batches=100):
+def train_rnn(rnn, train_loader, batch_size, optimizer, criterion, n_epochs, use_gpu, show_every_n_batches=100):
+    """
+    Trains the model on the preprocessed data.
+    :param rnn: The recurrent neural network to be trained
+    :param train_loader: Provides an iterable over the training set
+    :param batch_size: The number of word sequences in a batch
+    :param optimizer: The optimizer for updating model's weights
+    :param criterion: The loss function
+    :param n_epochs: The number of iterations over the entire training set
+    :param use_gpu: Determines whether GPU should be used to accelerate training
+    :show_every_n_batches: Prints loss statistics when the specified number of batches have been processed
+    :return: The trained model
+    """
+
     batch_losses = []
     
     rnn.train()
@@ -101,17 +116,17 @@ def train_rnn(rnn, batch_size, optimizer, criterion, n_epochs, train_on_gpu, sho
     for epoch_i in range(1, n_epochs + 1):
         
         # initialize hidden state
-        hidden = rnn.init_hidden(batch_size, train_on_gpu)
+        hidden = rnn.init_hidden(batch_size, use_gpu)
         
         for batch_i, (inputs, labels) in enumerate(train_loader, 1):
             
-            # make sure you iterate over completely full batches, only
+            # make sure we iterate over completely full batches, only
             n_batches = len(train_loader.dataset)//batch_size
             if(batch_i > n_batches):
                 break
             
             # forward, back prop
-            loss, hidden = forward_back_prop(rnn, optimizer, criterion, inputs, labels, hidden, train_on_gpu)          
+            loss, hidden = forward_back_prop(rnn, optimizer, criterion, inputs, labels, hidden, use_gpu)          
             # record loss
             batch_losses.append(loss)
 
@@ -125,7 +140,7 @@ def train_rnn(rnn, batch_size, optimizer, criterion, n_epochs, train_on_gpu, sho
     return rnn
 
 
-def generate(rnn, prime_id, int_to_vocab, token_dict, pad_value, predict_len=100):
+def generate(rnn, prime_id, int_to_vocab, token_dict, pad_value, sequence_length, predict_len, use_gpu):
     """
     Generate text using the neural network
     :param decoder: The PyTorch Module that holds the trained neural network
@@ -133,7 +148,9 @@ def generate(rnn, prime_id, int_to_vocab, token_dict, pad_value, predict_len=100
     :param int_to_vocab: Dict of word id keys to word values
     :param token_dict: Dict of puncuation tokens keys to puncuation values
     :param pad_value: The value used to pad a sequence
+    :param sequence_len: The number of words in a sequence the model was trained for
     :param predict_len: The length of text to generate
+    :param use_gpu: Determines whether GPU should be used to speed up calculations
     :return: The generated text
     """
     rnn.eval()
@@ -144,20 +161,20 @@ def generate(rnn, prime_id, int_to_vocab, token_dict, pad_value, predict_len=100
     predicted = [int_to_vocab[prime_id]]
     
     for _ in range(predict_len):
-        if train_on_gpu:
+        if use_gpu:
             current_seq = torch.LongTensor(current_seq).cuda()
         else:
             current_seq = torch.LongTensor(current_seq)
         
         # initialize the hidden state
-        hidden = rnn.init_hidden(current_seq.size(0))
+        hidden = rnn.init_hidden(current_seq.size(0), use_gpu)
         
         # get the output of the rnn
         output, _ = rnn(current_seq, hidden)
         
         # get the next word probabilities
         p = F.softmax(output, dim=1).data
-        if(train_on_gpu):
+        if use_gpu:
             p = p.cpu() # move to cpu
          
         # use top_k sampling to get the index of the next word
@@ -192,6 +209,15 @@ def generate(rnn, prime_id, int_to_vocab, token_dict, pad_value, predict_len=100
     
 
 
+
+use_gpu = torch.cuda.is_available()
+if not use_gpu:
+    print('No GPU found. Please use a GPU to train your neural network.')
+
+# Number of words in a sequence.
+# This parameter is used both for training and generating.
+sequence_length = 16  
+
 try:
     print("Loading the model...")
     _, vocab_to_int, int_to_vocab, token_dict = checkpoint.load_preprocess()
@@ -203,18 +229,15 @@ except:
     data_dir = './data/Seinfeld_Scripts.txt'
     text = checkpoint.load_data(data_dir)
 
-    int_text, vocab_to_int, int_to_vocab, token_dict = checkpoint.preprocess_and_save_data(data_dir, token_lookup, create_lookup_tables)
+    int_text, vocab_to_int, int_to_vocab, token_dict = checkpoint.preprocess_and_save_data(data_dir, 
+        token_lookup, create_lookup_tables)
 
-    sequence_length = 16  # number of words in a sequence
+    
     batch_size = 32
 
     train_loader = batch_data(int_text, sequence_length, batch_size)
 
     print("Training...")
-
-    train_on_gpu = torch.cuda.is_available()
-    if not train_on_gpu:
-        print('No GPU found. Please use a GPU to train your neural network.')
     
     #num_epochs = 20
     num_epochs = 2
@@ -229,7 +252,7 @@ except:
     show_every_n_batches = 200
 
     rnn = RNN(vocab_size, output_size, embedding_dim, hidden_dim, n_layers, dropout=0.5)
-    if train_on_gpu:
+    if use_gpu:
         rnn.cuda()
 
     # defining loss and optimization functions for training
@@ -237,7 +260,14 @@ except:
     criterion = nn.CrossEntropyLoss()
 
     # training the model
-    trained_rnn = train_rnn(rnn, batch_size, optimizer, criterion, num_epochs, train_on_gpu, show_every_n_batches)
+    trained_rnn = train_rnn(rnn, 
+        train_loader, 
+        batch_size, 
+        optimizer, 
+        criterion, 
+        num_epochs, 
+        use_gpu, 
+        show_every_n_batches)
 
     # saving the trained model
     checkpoint.save_model('./save/trained_rnn', trained_rnn)
@@ -250,6 +280,13 @@ prime_word = 'elaine' # name for starting the script
 
 pad_word = checkpoint.SPECIAL_WORDS['PADDING']
 
-generated_script = generate(trained_rnn, vocab_to_int[prime_word + ':'], int_to_vocab, token_dict, vocab_to_int[pad_word], gen_length)
+generated_script = generate(trained_rnn, 
+    vocab_to_int[prime_word + ':'], 
+    int_to_vocab, 
+    token_dict, 
+    vocab_to_int[pad_word], 
+    sequence_length,
+    gen_length,
+    use_gpu)
 
 print(generated_script)
