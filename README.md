@@ -44,29 +44,53 @@ stat-freq | [Optional] Prints loss statistics after the specified number of batc
 ## Example of a Generated Script
 
 elaine:.............(runs over to leave the door)
+
 jerry:(to kramer) i can't go on the middle machine!
+
 jerry: hey, that's right, i don't think so.
+
 george: i know what i said, you know, i can't have to take it out. i don't want you to have to be any with me.
+
 kramer:(frustrated) yeah, yeah. yeah.(jerry hangs up) oh, yeah.(to the bathroom.)
+
 jerry:(pointing) oh, hi.
+
 newman:(grabs) i told you i have to pick the other day.
+
 elaine: i don't know. i think i know.
+
 george: i got it.
+
 jerry:(trying to himself) what do you think?
+
 jerry: what are you doing?
+
 elaine: i don't know what you think i was going to get it on your friend.
+
 george: i got it.
+
 jerry: i don't think i'm gonna get it.
+
 george: no. no, no, no, no, it's a fine.
+
 george: what are you doing here, you know?
+
 jerry: what?
+
 jerry: i don't know.
+
 george: what?
+
 jerry: what happened is a second.
+
 kramer:(looking) oh, you don't know what you can take my god.
+
 kramer:(to jerry) hey, what are you talking about?
+
 jerry: i know what i was going to the one.
+
 george: well, i know.
+
 jerry:(looking at the table) you know what
 
 ## Acknowledgements
