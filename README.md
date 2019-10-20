@@ -2,7 +2,12 @@
 
 This project demonstrates the use of RNNs for script generation. It will create a new "fake" TV script based on the 9 seasons of Seinfeld TV serries. 
 
-## Installation
+## Setup
+
+Install PyTorch (I used v1.2.0 for development):
+```
+pip install torch
+```
 
 Clone this repo:
 ```
