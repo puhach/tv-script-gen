@@ -1,6 +1,5 @@
 .vscode/settings.json
 __pycache__/*
-data/Seinfeld_Scripts.txt
 preprocess.p
 __pycache__/rnn.cpython-35.pyc
 trained_rnn.pt
